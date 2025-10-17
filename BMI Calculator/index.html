@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BMI Calculator</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="calculator">
+            <h1>BMI Calculator</h1>
+            <p class="subtitle">Check your Body Mass Index</p>
+            
+            <form id="bmiForm">
+                <div class="form-group">
+                    <label for="height">Height (cm)</label>
+                    <input 
+                        type="number" 
+                        id="height" 
+                        name="height" 
+                        placeholder="Enter height in cm"
+                        min="50"
+                        max="300"
+                        step="0.1"
+                        required
+                    >
+                </div>
+                
+                <div class="form-group">
+                    <label for="weight">Weight (kg)</label>
+                    <input 
+                        type="number" 
+                        id="weight" 
+                        name="weight" 
+                        placeholder="Enter weight in kg"
+                        min="20"
+                        max="500"
+                        step="0.1"
+                        required
+                    >
+                </div>
+                
+                <button type="submit" class="btn">Calculate BMI</button>
+            </form>
+            
+            <div id="result" class="result hidden">
+                <div class="result-box">
+                    <p class="result-label">Your BMI</p>
+                    <p class="bmi-value" id="bmiValue">--</p>
+                    <p class="category-label">Category:</p>
+                    <p class="category" id="category">--</p>
+                </div>
+            </div>
+            
+            <div id="error" class="error hidden"></div>
+            
+            <div class="info">
+                <h3>BMI Categories</h3>
+                <div class="category-info">
+                    <div class="info-item underweight">
+                        <span class="range">BMI < 18.5</span>
+                        <span class="label">Underweight</span>
+                    </div>
+                    <div class="info-item normal">
+                        <span class="range">18.5 - 24.9</span>
+                        <span class="label">Normal</span>
+                    </div>
+                    <div class="info-item overweight">
+                        <span class="range">25.0 - 29.9</span>
+                        <span class="label">Overweight</span>
+                    </div>
+                    <div class="info-item obese">
+                        <span class="range">BMI ≥ 30</span>
+                        <span class="label">Obese</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        document.getElementById('app').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const height = document.getElementById('height').value;
+            const weight = document.getElementById('weight').value;
+            const resultDiv = document.getElementById('result');
+            const errorDiv = document.getElementById('error');
+            
+            resultDiv.classList.add('hidden');
+            errorDiv.classList.add('hidden');
+            
+            try {
+                const response = await fetch('/calculate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        height: height,
+                        weight: weight
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    document.getElementById('bmiValue').textContent = data.bmi;
+                    document.getElementById('category').textContent = data.category;
+                    
+                    const resultBox = document.querySelector('.result-box');
+                    resultBox.className = 'result-box';
+                    resultBox.classList.add(data.category.toLowerCase());
+                    
+                    resultDiv.classList.remove('hidden');
+                } else {
+                    errorDiv.textContent = data.error || 'An error occurred';
+                    errorDiv.classList.remove('hidden');
+                }
+            } catch (error) {
+                errorDiv.textContent = 'Failed to calculate BMI. Please try again.';
+                errorDiv.classList.remove('hidden');
+            }
+        });
+    </script>
+</body>
+</html>
